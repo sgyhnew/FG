@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
+from tkinter import ROUND
 from typing import TYPE_CHECKING, Callable
 if TYPE_CHECKING:
     from FG.main import Game
@@ -10,9 +11,10 @@ from time import sleep
 from FG.constants import *
 from FG.constants import PriorityLevel as PL
 from FG.constants import GameResult as GR
-from FG.constants import GamePhase as GP
+from FG.constants import FightPhase as FP
+from FG.constants import AttributeEvent as AE
 from func import say
-from system.attribute import Attribute,MpConfig
+from system.attribute import Attribute,MpConfig,DamageResult
 from system.logger import Gamelogger
 from system.skill import SkillData,DefenseSkill,SkillManager
 @dataclass
@@ -28,12 +30,11 @@ class CombatContext:     # 战斗执行上下文
     skip_damage: bool = False      # 是否跳过伤害结算
     player_damage: int = 0         # 玩家已受伤害值
     pc_damage: int = 0             # PC已受伤害值
-
 @dataclass
 class PhaseContext:      # 阶段回合上下文
     player_input:  str | None
     defense_skill: DefenseSkill | None
-    player_skill:  str | None = None
+    player_skill:  SkillData | None = None
     pc_skill:      str | None = None
     combat_data: CombatData | None = None
 
@@ -46,15 +47,24 @@ class Combat:  # 战斗系统
         self.logger = Gamelogger(log_dir='logs')
     def _phase_prepare(self, context: PhaseContext):        # 准备阶段
         self.logger.gamerun(f"第{self.game.count}回合准备阶段")
-        say(f"【{GP.PREPARE.value}】",SAY_SPEED)
+        say(f"【{FP.PREPARE.value}】",SAY_SPEED)
+        # case 1：存活判定
+        if not self.is_alive(True):
+            say("\n【战斗结束】你重伤倒地,无法继续战斗...")
+            print("对方拱手道：'承让了！'")
+        if not self.is_alive(False):
+            say("\n【战斗结束】对方口吐鲜血,单膝跪地...")
+            print("对方喘息道：'阁下武功高强，在下佩服！'")
+            
 
-        self.logger.gamerun(f"玩家MP +{GR.ROUND}, PC MP +{GR.ROUND}")
+        # case 2：能量事件
+        self.logger.gamerun(f"因{GR.ROUND},玩家MP +{MpConfig.MP_RULES.get(ROUND)}, PC MP +{MpConfig.MP_RULES.get(ROUND)}")
         self.attribute.mp_do(True, GR.ROUND)
         self.attribute.mp_do(False, GR.ROUND)
         return None
     def _phase_player_action(self, context: PhaseContext):  # 玩家行动阶段
         self.logger.debug(f"玩家行动阶段: input={context.player_input}, defense={context.defense_skill}")
-        say(f"【{GP.ACTION_PLAYER.value}】",SAY_SPEED)
+        say(f"【{FP.ACTION_PLAYER.value}】",SAY_SPEED)
 
         # case1: 防御选择
         if context.defense_skill:
@@ -68,26 +78,31 @@ class Combat:  # 战斗系统
             self.logger.info(f"玩家使用技能: {context.player_input}")
     def _phase_pc_action(self, context: PhaseContext):      # 对手行动阶段
         self.logger.gamerun("PC行动阶段")
-        say(f"【{GP.ACTION_PC.value}】",SAY_SPEED)
+        say(f"【{FP.ACTION_PC.value}】",SAY_SPEED)
 
         context.pc_skill = self._choose_pc_skill()
         self._execute_effect(context.pc_skill, "对手")
     def _phase_resolve(self,context: PhaseContext):         # 结算阶段
-        say(f"【{GP.RESOLVE.value}】",SAY_SPEED)
+        say(f"【{FP.RESOLVE.value}】",SAY_SPEED)
 
         # case1: 防御选择
         if context.defense_skill:
-            damage = self.damage_calculate(
-                context.pc_skill,    # PC攻击
+            damage = self._damage_calculate(    # 计算伤害
+                context.pc_skill,       # PC攻击
                 context.defense_skill,  # 防御技能
-                False                     # 防御回合无克制
+                False                   # 防御回合无克制
         )
-            self.game.attribute.damage_take(True, damage)
+            damage = self._damage_apply(        # 应用伤害
+                target_is_player=True,      # 受击方是玩家
+                damage=damage, 
+                skill_name=context.pc_skill # 造成伤害的技能名
+            )
             context.combat_data = self._build_defense_result(context.defense_skill,damage)
         # case2：攻击选择
         else:
             context.combat_data = self.judge(context.player_skill, context.pc_skill)
-        print(f"\n[战斗结果] {context.combat_data.description}")
+        print(f"{context.combat_data.description}")
+ 
     def is_alive(self, is_player):  # 胜负判定 同时为0判玩家为失败
         return self.attribute.hp1 > 0 if is_player else self.attribute.hp2 > 0
 
@@ -123,7 +138,6 @@ class Combat:  # 战斗系统
         #         context.result_log.append(" → 攻击被防御格挡")
         #     else:
         #         context.result_log.append(" → 攻击准备就绪")
-
 
     def _build_defense_result(self, ddefense_skill: DefenseSkill, damage: int) -> CombatData: # 防御结果构建
         desc = f"你施展【{ddefense_skill.name}】，受到{damage}点伤害"
@@ -162,33 +176,36 @@ class Combat:  # 战斗系统
         print(f"[警告] 等级 '{target_level}' 没有找到攻击技能，使用默认技能")
         return "基础拳"
     
-    def damage_do(self, context: CombatContext):    # 战斗中伤害的计算和应用
-        """根据上下文计算最终伤害"""
-        # 判断克制关系（使用 type 字段）
-        player_type = context.player_skill.type if context.player_skill else ""
-        pc_type = context.pc_skill.type if context.pc_skill else ""
+
+    def _damage_apply(self,        # 伤害应用
+            target_is_player: bool,      # 目标是玩家
+            damage: int,                 # 伤害
+            skill_name: str | None,      # 技能名
+        ) -> int:  
+        target_name = "你" if target_is_player else "对手"
         
-        player_countered = self.game.beats.get(player_type) == pc_type if player_type else False
-        pc_countered = self.game.beats.get(pc_type) == player_type if pc_type else False
-        
-        # 计算伤害
-        context.player_damage = self.damage_calculate(
-            context.player_skill.name, None, player_countered
-        )
-        context.pc_damage = self.damage_calculate(
-            context.pc_skill.name, None, pc_countered
-        )
-        
-        # 应用伤害（状态修改）
-        self.game.attribute.damage_take(True, context.player_damage)
-        self.game.attribute.damage_take(False, context.pc_damage)
-    def damage_calculate(   # 伤害计算
-            self, 
+        # case1: 调用伤害处理，并获取事件
+        event = self.attribute.damage_take(target_is_player, damage, skill_name)
+        # case2: 检查事件，输出日志(view层职责)
+        if event == AE.DEATH:
+            self.logger.gamerun(f"{target_name}受到了 {damage} 点伤害，生命值归零！")
+        elif event == AE.FATAL:
+            message = f"{target_name}受到了 {damage} 点伤害。他受了致命伤！"
+            self.logger.gamerun(message)
+        elif event == AE.CRITICAL:
+            self.logger.gamerun(f"{target_name}受到了 {damage} 点伤害。他受到大量伤害。")
+        elif event == AE.HURT:
+            self.logger.gamerun(f"{target_name}受到了 {damage} 点伤害。")
+  
+        return damage
+
+    def _damage_calculate(self,    # 伤害计算 
             attack_skill: str | None,      # 攻击方技能名（防御回合为None）
             defense_skill: DefenseSkill | None,      # 防御技能名
             is_countered: bool               # 是否被克制
         ) -> int:
-
+        if attack_skill is None:
+            return 0
         # case 1：获取基础伤害（防御回合用默认进阶/基础伤害）
         base_damage = self.skill.get_skill(attack_skill).damage
         
@@ -246,7 +263,7 @@ class Combat:  # 战斗系统
         
         return CombatData(context.player_damage, context.pc_damage, desc)
 
-    def execute_turn(self, player_input: str, defense_skill_name: str | None) -> CombatData:   # 执行一个战斗回合
+    def combat_turn(self, player_input: str, defense_skill_name: str | None) -> CombatData:   # 执行一个战斗回合
         # 防御性检测，防御技能只能通过 defense_skill_name 传入
         if player_input and defense_skill_name:
             self.logger.warning("同时指定攻击和防御，忽略攻击")
@@ -311,9 +328,35 @@ class Combat:  # 战斗系统
             self._execute_skill_effect(skill, owner, context)
         
         # 5. 最终伤害结算
-        if not context.skip_damage:
-            self.damage_do(context)
+        # 5a. 计算原始伤害 (逻辑来自原 damage_do)
+        player_type = context.player_skill.type if context.player_skill else ""
+        pc_type = context.pc_skill.type if context.pc_skill else ""
         
+        player_countered = self.game.beats.get(player_type) == pc_type if player_type else False
+        pc_countered = self.game.beats.get(pc_type) == player_type if pc_type else False
+        
+        # 玩家对PC的原始伤害
+        pc_raw_damage = self._damage_calculate(
+            context.player_skill.name, None, player_countered
+        )
+        # PC对玩家的原始伤害
+        player_raw_damage = self._damage_calculate(
+            context.pc_skill.name, None, pc_countered
+        )
+        
+        # 5b. 应用伤害（调用带日志的 _apply_damage）
+        # 玩家对PC的伤害：受击方是PC (target_is_player=False)
+        context.pc_damage = self._damage_apply(
+            target_is_player=False, 
+            damage=pc_raw_damage,
+            skill_name=context.player_skill.name
+        )
+        # PC对玩家的伤害：受击方是玩家 (target_is_player=True)
+        context.player_damage = self._damage_apply(
+            target_is_player=True, 
+            damage=player_raw_damage,
+            skill_name=context.pc_skill.name
+        )
         # 6. 构建并返回结果
         return self._build_priority_result(context)
     

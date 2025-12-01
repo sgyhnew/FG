@@ -10,11 +10,10 @@ from dataclasses import dataclass
 from system.attribute import Attribute
 from system.menu import Menu
 from system.combat import Combat, CombatData
-from system.logger import Gamelogger
 from system.skill import SkillManager
-from system.logger import logging
+from system.logger import Gamelogger
 from constants import *
-from constants import PriorityLevel as PL
+from constants import GamePhase as GP
 from func import say, load_json
 
 class Game:
@@ -34,38 +33,25 @@ class Game:
 
         self.logger.info("战斗系统初始化完成")  # 初始化
 
-    def is_alive(self, is_player):  # 胜负判定 同时为0判玩家为失败
-        return self.attribute.hp1 > 0 if is_player else self.attribute.hp2 > 0
 
-    def fight(self, player_skill: str): # 回合制战斗
+    def fight(self, player_skill: str,defense_skill: str | None = None): # 回合制战斗
   
         """Game类只负责调用战斗系统和处理结果"""
-        result: CombatData= self.combat.execute_turn(player_skill,None) # 默认防御为None
+        result: CombatData= self.combat.combat_turn(player_skill,defense_skill) # 默认防御为None
         
         # 根据结果触发额外逻辑
         if result.damage_to_player > 20:    # 重伤提示
             say("这一击让你气血翻涌！")
-        
-        # 显示结果
-        say(result.description)
         return True
     
     def main(self): # 主程序入口,回合外的、宏观的 交互战斗流程
         while 1:
-            # 回合开始时检查胜负
-            if not self.is_alive(True):
-                say("\n【战斗结束】你重伤倒地，无法继续战斗...")
-                print("对方拱手道：'承让了！'")
-                break
-            if not self.is_alive(False):
-                say("\n【战斗结束】对方口吐鲜血，单膝跪地...")
-                print("对方喘息道：'阁下武功高强，在下佩服！'")
-                break
             
             # 进入新回合
             self.count +=1
             print(f"第{self.count}回合")
 
+            # 对方HP<50第一次判定
             if self.attribute.hp2 > 50:
                 say("对方覆手而立，侧视而笑：'阁下出招吧，拳、剑、刀皆可，若有疑惑我自可欣然解答。若是不愿再战，逃走即可！'\n")
             else:
@@ -74,11 +60,12 @@ class Game:
             # self.menu.debug_state() # debug
             menu_result = self.menu.run()     # 实例化菜单栈
 
+            # 菜单选项
             if menu_result is None:
                 # 正常返回，继续下一回合
                 continue
 
-            elif menu_result == '__exit__':  # 退出
+            elif menu_result == '__exit__':  # 退出，其余关键字的触发在menu中，exit则是为了退出main中的主循环
                 break
             elif isinstance(menu_result, str):
                 # 攻击技能选择
@@ -119,4 +106,5 @@ class Game:
                 print("此招式你尚未习得，思虑再三决定重新出招")
 
 if __name__ == "__main__":
-        Game().main()
+        game = Game()
+        game.main() 

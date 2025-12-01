@@ -5,13 +5,17 @@ from typing import Optional
 
 
 class Gamelogger:   # 游戏日志管理器
-    def __init__(self,log_dir: str = 'logs'):
+    def __init__(self,log_dir: str = 'logs',log_to_console: bool = False):   # 选择性输入控制台
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(exist_ok = True)
 
         # 创建日志器
         self.logger = logging.getLogger("game")
         self.logger.setLevel(logging.DEBUG)
+
+        # 判定是否实例化，若没有处理器Handler才继续
+        if self.logger.hasHandlers():
+            return
 
         # 战斗日志（INFO级别）
         gamerun_handler = logging.FileHandler(
@@ -29,14 +33,18 @@ class Gamelogger:   # 游戏日志管理器
         error_handler.setLevel(logging.ERROR)
         error_handler.setFormatter(self._get_formatter())
         
-        # 控制台（DEBUG级别）
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.DEBUG)
-        console_handler.setFormatter(self._get_formatter())
+            # 控制台（DEBUG级别）
+        if log_to_console:
+            console_handler = logging.StreamHandler()
+            console_handler.setLevel(logging.DEBUG)
+            console_handler.setFormatter(self._get_formatter())
+            self.logger.addHandler(console_handler)
         
+        # 创建处理器
         self.logger.addHandler(gamerun_handler)
         self.logger.addHandler(error_handler)
-        self.logger.addHandler(console_handler)
+
+
 
     def _get_formatter(self) -> logging.Formatter:
         return logging.Formatter(

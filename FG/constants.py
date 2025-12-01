@@ -7,7 +7,16 @@ class GameResult(Enum):     # 游戏结果名词
     COMBAT_DRAW = "combat_draw"    # 平局
     DEFENSE_TURN = "defense_turn"  # 防御回合
 
-class GamePhase(Enum):      # 游戏阶段
+class GamePhase(Enum):       # 游戏主阶段
+    EXPLORATION =   "探索阶段"
+    DIALOGUE =      "对话阶段"
+    COMBAT =        "战斗阶段"  
+    MENU =          "菜单界面"
+
+# class FightEvent(Enum):      # 战斗特殊事件
+    
+
+class FightPhase(Enum):      # 战斗阶段
     PREPARE =        "准备阶段"    
     ACTION_PLAYER =  "玩家行动阶段"
     ACTION_PC =      "对手行动阶段"
@@ -23,12 +32,18 @@ class MenuAction(Enum):     # 行动菜单
     DEFENSE = auto()
     TOOL    = auto() 
 
+class AttributeEvent(Enum): # 角色属性变化引发的事件
+    FATAL = '受到致命伤'  # 受到致命伤害（重伤）
+    CRITICAL = '重伤'    # 受到大量伤害
+    HURT = '轻伤'      # 受到普通伤害
+    DEATH = '阵亡'                 # 生命值归零
+    MP_ADD = '能量增加'                       # 能量增加
+    MP_SUB = '能量减少'                       # 能量减少
+
 class SkillLevel(Enum):     # 技能等级
     LV1 = "lv1"
     LV2 = "lv2"
 # class CharactersStatus(Enum):   # 角色buff和debuff
-    
-
 
 class PriorityLevel(Enum):  # 优先级
     P0 = 0  # 最高,不轻易启用

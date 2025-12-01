@@ -103,3 +103,90 @@
 2025-11-30 04:13:47,218 - INFO - [info] 玩家使用技能: 进阶防御
 2025-11-30 04:13:47,218 - INFO - [gamerun] PC行动阶段
 2025-11-30 04:13:47,218 - INFO - [gamerun] PC行动阶段
+2025-11-30 20:18:26,904 - INFO - [info] 战斗系统初始化完成
+2025-11-30 20:18:26,904 - INFO - [info] 战斗系统初始化完成
+2025-11-30 20:18:38,251 - INFO - [gamerun] 第1回合准备阶段
+2025-11-30 20:18:38,251 - INFO - [gamerun] 第1回合准备阶段
+2025-11-30 20:18:39,253 - INFO - [gamerun] 因GameResult.ROUND,玩家MP +None, PC MP +None
+2025-11-30 20:18:39,253 - INFO - [gamerun] 因GameResult.ROUND,玩家MP +None, PC MP +None
+2025-11-30 20:18:40,355 - INFO - [info] 玩家使用技能: 基础拳
+2025-11-30 20:18:40,355 - INFO - [info] 玩家使用技能: 基础拳
+2025-11-30 20:18:40,355 - INFO - [gamerun] PC行动阶段
+2025-11-30 20:18:40,355 - INFO - [gamerun] PC行动阶段
+2025-11-30 20:49:07,942 - INFO - [info] 战斗系统初始化完成
+2025-11-30 20:49:07,942 - INFO - [info] 战斗系统初始化完成
+2025-11-30 21:01:32,885 - INFO - [info] 战斗系统初始化完成
+2025-11-30 21:01:44,018 - INFO - [gamerun] 第1回合准备阶段
+2025-11-30 21:01:45,020 - INFO - [gamerun] 因GameResult.ROUND,玩家MP +None, PC MP +None
+2025-11-30 21:01:46,121 - INFO - [info] 玩家使用技能: 基础拳
+2025-11-30 21:01:46,121 - INFO - [gamerun] PC行动阶段
+2025-12-01 14:08:59,370 - INFO - [info] 战斗系统初始化完成
+2025-12-01 14:09:13,241 - INFO - [gamerun] 第1回合准备阶段
+2025-12-01 14:09:14,242 - INFO - [gamerun] 因GameResult.ROUND,玩家MP +None, PC MP +None
+2025-12-01 14:09:15,344 - INFO - [info] 玩家使用技能: 基础拳
+2025-12-01 14:09:15,344 - INFO - [gamerun] PC行动阶段
+2025-12-01 14:09:17,448 - INFO - [gamerun] 对手受到了 10 点伤害。
+2025-12-01 14:09:17,448 - INFO - [gamerun] 你受到了 10 点伤害。
+2025-12-01 14:52:39,869 - INFO - [info] 战斗系统初始化完成
+2025-12-01 14:52:45,721 - INFO - [gamerun] 第1回合准备阶段
+2025-12-01 14:52:46,722 - INFO - [gamerun] 因GameResult.ROUND,玩家MP +None, PC MP +None
+2025-12-01 14:52:47,825 - INFO - [info] 玩家使用技能: 基础拳
+2025-12-01 14:52:47,825 - INFO - [gamerun] PC行动阶段
+2025-12-01 14:52:49,928 - INFO - [gamerun] 对手受到了 10 点伤害。
+2025-12-01 14:52:49,928 - INFO - [gamerun] 你受到了 10 点伤害。
+2025-12-01 14:52:58,743 - INFO - [gamerun] 第2回合准备阶段
+2025-12-01 14:52:59,743 - INFO - [gamerun] 因GameResult.ROUND,玩家MP +None, PC MP +None
+2025-12-01 14:53:00,846 - INFO - [info] 玩家使用技能: 基础防御
+2025-12-01 14:53:00,846 - INFO - [gamerun] PC行动阶段
+2025-12-01 15:01:17,332 - INFO - [info] 战斗系统初始化完成
+2025-12-01 15:01:30,279 - INFO - [gamerun] 第1回合准备阶段
+2025-12-01 15:01:31,280 - INFO - [gamerun] 因GameResult.ROUND,玩家MP +None, PC MP +None
+2025-12-01 15:01:32,383 - INFO - [info] 玩家使用技能: 基础防御
+2025-12-01 15:01:32,383 - INFO - [gamerun] PC行动阶段
+2025-12-01 15:01:43,099 - INFO - [gamerun] 第2回合准备阶段
+2025-12-01 15:01:44,100 - INFO - [gamerun] 因GameResult.ROUND,玩家MP +None, PC MP +None
+2025-12-01 15:01:45,203 - INFO - [info] 玩家使用技能: 基础拳
+2025-12-01 15:01:45,203 - INFO - [gamerun] PC行动阶段
+2025-12-01 15:01:47,305 - INFO - [gamerun] 对手受到了 10 点伤害。
+2025-12-01 15:01:47,305 - INFO - [gamerun] 你受到了 10 点伤害。
+2025-12-01 15:05:25,053 - INFO - [info] 战斗系统初始化完成
+2025-12-01 15:05:36,836 - INFO - [gamerun] 第1回合准备阶段
+2025-12-01 15:05:37,837 - INFO - [gamerun] 因GameResult.ROUND,玩家MP +None, PC MP +None
+2025-12-01 15:05:38,938 - INFO - [info] 玩家使用技能: 基础拳
+2025-12-01 15:05:38,938 - INFO - [gamerun] PC行动阶段
+2025-12-01 15:05:41,041 - INFO - [gamerun] 对手受到了 10 点伤害。
+2025-12-01 15:05:41,041 - INFO - [gamerun] 你受到了 10 点伤害。
+2025-12-01 15:06:52,446 - INFO - [gamerun] 第2回合准备阶段
+2025-12-01 15:06:53,447 - INFO - [gamerun] 因GameResult.ROUND,玩家MP +None, PC MP +None
+2025-12-01 15:06:54,549 - INFO - [info] 玩家使用技能: 基础防御
+2025-12-01 15:06:54,549 - INFO - [gamerun] PC行动阶段
+2025-12-01 15:37:15,724 - INFO - [info] 战斗系统初始化完成
+2025-12-01 15:37:22,896 - INFO - [gamerun] 第1回合准备阶段
+2025-12-01 15:37:23,898 - INFO - [gamerun] 因GameResult.ROUND,玩家MP +None, PC MP +None
+2025-12-01 15:37:25,000 - INFO - [info] 玩家使用技能: 基础拳
+2025-12-01 15:37:25,000 - INFO - [gamerun] PC行动阶段
+2025-12-01 15:37:27,102 - INFO - [gamerun] 对手受到了 10 点伤害。
+2025-12-01 15:37:27,102 - INFO - [gamerun] 你受到了 10 点伤害。
+2025-12-01 15:37:32,714 - INFO - [gamerun] 第2回合准备阶段
+2025-12-01 15:37:33,714 - INFO - [gamerun] 因GameResult.ROUND,玩家MP +None, PC MP +None
+2025-12-01 15:37:34,816 - INFO - [info] 玩家使用技能: 基础防御
+2025-12-01 15:37:34,816 - INFO - [gamerun] PC行动阶段
+2025-12-01 15:50:51,671 - INFO - [info] 战斗系统初始化完成
+2025-12-01 15:51:02,924 - INFO - [gamerun] 第1回合准备阶段
+2025-12-01 15:51:03,924 - INFO - [gamerun] 因GameResult.ROUND,玩家MP +None, PC MP +None
+2025-12-01 15:51:05,026 - INFO - [info] 玩家使用技能: 基础拳
+2025-12-01 15:51:05,026 - INFO - [gamerun] PC行动阶段
+2025-12-01 15:51:07,128 - INFO - [gamerun] 对手受到了 10 点伤害。
+2025-12-01 15:51:07,128 - INFO - [gamerun] 你受到了 10 点伤害。
+2025-12-01 15:51:24,568 - INFO - [gamerun] 第2回合准备阶段
+2025-12-01 15:51:25,569 - INFO - [gamerun] 因GameResult.ROUND,玩家MP +None, PC MP +None
+2025-12-01 15:51:26,671 - INFO - [info] 玩家使用技能: 基础防御
+2025-12-01 15:51:26,671 - INFO - [gamerun] PC行动阶段
+2025-12-01 15:53:30,638 - INFO - [info] 战斗系统初始化完成
+2025-12-01 15:53:38,804 - INFO - [info] 战斗系统初始化完成
+2025-12-01 15:53:45,100 - INFO - [gamerun] 第1回合准备阶段
+2025-12-01 15:53:46,101 - INFO - [gamerun] 因GameResult.ROUND,玩家MP +None, PC MP +None
+2025-12-01 15:53:47,203 - INFO - [info] 玩家使用技能: 基础拳
+2025-12-01 15:53:47,203 - INFO - [gamerun] PC行动阶段
+2025-12-01 15:53:49,305 - INFO - [gamerun] 对手受到了 10 点伤害。
+2025-12-01 15:53:49,305 - INFO - [gamerun] 你受到了 10 点伤害。

@@ -1,5 +1,7 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Callable
+from ast import Tuple
+from re import I
+from typing import TYPE_CHECKING, Callable, Optional,Tuple
 if TYPE_CHECKING:
     from FG.main import Game
 from multiprocessing import set_forkserver_preload
@@ -7,7 +9,10 @@ import sys
 from pathlib import Path
 from FG.constants import *
 from FG.constants import GameResult as GR
+from FG.constants import AttributeEvent as AE
 from func import say, load_json
+
+DamageResult = Tuple[int, Optional[AE]]  # 定义伤害结果返回的类型
 
 class MpConfig: #   mp管理规则
     MP_RULES = {
@@ -38,6 +43,15 @@ class Attribute:    # 内部类属性系统，负责战斗中状态展示
         print(f"  💀 对手血量: {self.hp2:>3}/100  |  🛡️  能量: {pc_mp:>2}/{self.mp_pc_top}")
         print(f"{'='*40}")
 
+    def hp_get(self, is_player:bool) -> int: # 血量的调用
+        return self.hp1 if is_player else self.hp2
+    def hp_set(self, is_player:bool, value:int ) -> int: # 血量的设置
+
+        top_hp = self.hp1_top if is_player else self.hp2_top
+        new_val = max(0,min(value,top_hp))  # 限制血量在0~上限之间
+
+        return new_val
+
     def mp_get(self, is_player:bool) -> int: # 能量的调用
         return self._mp_player if is_player else self._mp_pc
     def mp_set(self, is_player:bool, value): # 能量的设置
@@ -47,7 +61,6 @@ class Attribute:    # 内部类属性系统，负责战斗中状态展示
         new_val = max(0,min(value,top))
         setattr(self, attr, new_val)
         return new_val
-
     def _mp_delta(self, reason: int | str | GR) -> int:   # 根据原因获取能量变化值
         # case1：GR枚举的 .value 属性
         if isinstance(reason, GR):
@@ -80,17 +93,29 @@ class Attribute:    # 内部类属性系统，负责战斗中状态展示
         new_value = current + delta
         return self.mp_set(is_player, new_value)
     
-    def damage_take(        # 伤害应用 
-            self, is_player: bool, damage: int):   
-            if damage <= 0:
-                return
-            if is_player:
-                self.hp1 = max(0, self.hp1 - damage)
-            else:
-                self.hp2 = max(0, self.hp2 - damage)
-            
-            # 扩展：触发受伤事件
-            if is_player and damage > 20:
-                print("你受了重伤！")
+    def damage_take(self,   # 伤害处理
+            is_player: bool,    # 是否玩家
+            damage: int,        # 伤害值
+            skill_name: str | None = None   # 造成伤害的技能
+            ) -> DamageResult:   
+        current_hp = self.hp_get(is_player) # 获取当前血量
+        hp = max(0,current_hp - damage)     # 计算新的血量
 
+        hp_event: Optional[AE] = None       # 血量事件
+        self.hp_set(is_player, hp)          # 设置新的血量
+        hp_top = self.hp1_top if is_player else self.hp2_top
+        # case1：伤害判定事件
+        if   hp == 0:
+            hp_event = AE.DEATH
+        elif hp <= hp_top * 0.2:
+            hp_event = AE.FATAL
+        elif hp <= hp_top * 0.5:
+            hp_event = AE.CRITICAL
+        elif hp < current_hp:
+            hp_event = AE.HURT
+
+        # case2：触发额外受伤事件
+        if is_player and damage > 20:
+            print("对方招式精湛，你血流如注！")
+        return hp_event
 # if __name__ == '__main__':
