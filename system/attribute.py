@@ -94,28 +94,35 @@ class Attribute:    # 内部类属性系统，负责战斗中状态展示
         return self.mp_set(is_player, new_value)
     
     def damage_take(self,   # 伤害处理
-            is_player: bool,    # 是否玩家
-            damage: int,        # 伤害值
-            skill_name: str | None = None   # 造成伤害的技能
+            play_damage: int,   # 玩家伤害
+            pc_damage: int,     # 对方伤害 
             ) -> DamageResult:   
-        current_hp = self.hp_get(is_player) # 获取当前血量
-        hp = max(0,current_hp - damage)     # 计算新的血量
+        # case1: 获取当前血量
+        play_current_hp = self.hp_get(True) 
+        pc_current_hp = self.hp_get(False)
 
-        hp_event: Optional[AE] = None       # 血量事件
-        self.hp_set(is_player, hp)          # 设置新的血量
-        hp_top = self.hp1_top if is_player else self.hp2_top
-        # case1：伤害判定事件
-        if   hp == 0:
-            hp_event = AE.DEATH
-        elif hp <= hp_top * 0.2:
-            hp_event = AE.FATAL
-        elif hp <= hp_top * 0.5:
-            hp_event = AE.CRITICAL
-        elif hp < current_hp:
-            hp_event = AE.HURT
+        # case2: 计算新的血量
+        play_hp = max(0,play_current_hp - play_damage)    
+        pc_hp = max(0,pc_current_hp - pc_damage)
 
-        # case2：触发额外受伤事件
-        if is_player and damage > 20:
-            print("对方招式精湛，你血流如注！")
-        return hp_event
+        # case3: 设置新的血量
+        self.hp1 = self.hp_set(True, play_hp)
+        self.hp2 = self.hp_set(False, pc_hp)
+        # # case4: 判断血量事件
+        # hp_event: Optional[AE] = None      
+        # hp_top = self.hp1_top if 
+
+        # if   hp == 0:
+        #     hp_event = AE.DEATH
+        # elif hp <= hp_top * 0.2:
+        #     hp_event = AE.FATAL
+        # elif hp <= hp_top * 0.5:
+        #     hp_event = AE.CRITICAL
+        # elif hp < current_hp:
+        #     hp_event = AE.HURT
+
+        # # case2：触发额外受伤事件
+        # if is_player and damage > 20:
+        #     print("对方招式精湛，你血流如注！")
+        return None
 # if __name__ == '__main__':

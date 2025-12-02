@@ -4,7 +4,7 @@ from typing import Dict, Any, Callable, Tuple, Iterator
 from dataclasses import dataclass
 from FG.constants import PriorityLevel as PL
 from func import load_json
-@dataclass
+@dataclass(frozen=True)
 class SkillData(ABC):    # 通用技能属性
     name: str           # 技能名
     category: str       # 行动类别
@@ -38,7 +38,7 @@ class SkillData(ABC):    # 通用技能属性
     def from_dict(cls, data: Dict[str,Any]) -> 'SkillData':   # 父类的基础字典
         base_data = cls._base_data(data)    
         return cls(**base_data)  # 返回解包对象
-@dataclass
+@dataclass(frozen=True)
 class AttackSkill(SkillData):   # 攻击技能
     damage: int = 0      # 伤害
     type:   str ='其他'  # 类型
@@ -50,7 +50,7 @@ class AttackSkill(SkillData):   # 攻击技能
             damage = data.get('damage',0),
             type = data.get('type','其他')
         )
-@dataclass
+@dataclass(frozen=True)
 class DefenseSkill(SkillData):  # 防御技能
     defense_round: int = 1    # 生效回合数
     damage_reduction: int = 0 # 伤害减免

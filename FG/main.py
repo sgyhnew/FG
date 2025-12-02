@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from system.attribute import Attribute
 from system.menu import Menu
 from system.combat import Combat, CombatData
-from system.skill import SkillManager
+from system.skill import SkillData, SkillManager
 from system.logger import Gamelogger
 from constants import *
 from constants import GamePhase as GP
@@ -34,10 +34,10 @@ class Game:
         self.logger.info("战斗系统初始化完成")  # 初始化
 
 
-    def fight(self, player_skill: str,defense_skill: str | None = None): # 回合制战斗
+    def fight(self, player_skill: str): # 回合制战斗
   
         """Game类只负责调用战斗系统和处理结果"""
-        result: CombatData= self.combat.combat_turn(player_skill,defense_skill) # 默认防御为None
+        result: CombatData= self.combat.combat_turn(player_skill)
         
         # 根据结果触发额外逻辑
         if result.damage_to_player > 20:    # 重伤提示
@@ -95,8 +95,7 @@ class Game:
                     # 检查能量是否足够
                     if self.attribute.mp_get(True) >= cost:
                         self.attribute.mp_do(True, -cost)
-                        self.fight("", defense_skill_name=defense_skill_name)
-                        self.fight("")  # 防御回合
+                        self.fight(skill_name)
                     else:
                         say(f"能量不足{cost}点，无法进行防御！")
                         
