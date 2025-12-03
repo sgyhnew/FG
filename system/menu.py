@@ -3,6 +3,9 @@ from __future__ import annotations
 
 from ctypes.wintypes import SMALL_RECT
 from typing import TYPE_CHECKING, Callable
+
+from system.attribute import MpConfig
+from system.skill import SkillData
 if TYPE_CHECKING:
     from FG.main import Game
 from func import say
@@ -79,11 +82,13 @@ class Menu:       # 菜单系统，负责所有用户交互
     def __init__(self,game):
         self.game = game    # 外部调用
         self.attribute = game.attribute
+        self.character_id: str ='player_default'
         self.stack = MenuStack(game)  # 菜单栈
         self.menus = { # 菜单以及其配置
             'home':         self.menu_home(),      #主菜单
             # 'adventure':    self.menu_adventure(), #一级子菜单，冒险模式
             'chanllenge':   self.menu_chanllenge(),#一级子菜单，挑战模式(原main)
+            'character':    self.menu_character(), #一级子菜单，角色选择
             'category':     self.menu_category(),  #二级子菜单，招式种类
             'level':        self.menu_level(),     #三级子菜单，招式等级
         }
@@ -120,12 +125,16 @@ class Menu:       # 菜单系统，负责所有用户交互
             self, options: Dict) -> List[str]:   
         return [k for k in options.keys() if k != 'z']
     def _build_skill_menu(      # 构建技能菜单选项
-            self, category: str, level: str) -> Dict[str, Tuple[str, bool, int]]: 
+            self, category: str, level: str,ID: str
+        ) -> Dict[str, Tuple[str, bool, int]]: 
+        
         options: Dict[str, Tuple[str, bool, int]] = {}
         key_index = ord('a')  # 初始值 = 97 98→'b'
 
+        # 获取目标角色有的技能清单
+        skills = self.game.skill.get_skill_manifest(ID)
         # 遍历技能缓存，筛选出对应类别的技能
-        for skill_data in self.game.skill._skill_cache.values():
+        for skill_data in skills:
             
             if skill_data.category != category or skill_data.level != level:
                 continue
@@ -140,13 +149,12 @@ class Menu:       # 菜单系统，负责所有用户交互
         options['z'] = ('返回', True, 0)  # 返回选项
         return options
     def _get_available_levels(  # 获取指定类别的level
-            self, category: str) -> List[str]:    
+            self, category: str, id: str) -> List[str]:    
         levels = set()  # 集合
-        for skill_data in self.game.skill._skill_cache.values():
+        for skill_data in self.game.skill.get_skill_manifest(id):
             if skill_data.category == category:
                 levels.add(skill_data.level)
-        levels = sorted(levels) # 转化为有序列表
-        return levels
+        return sorted(levels) # 返回有序列表
     
     def debug_state(self):
         """调试状态信息"""
@@ -171,7 +179,7 @@ class Menu:       # 菜单系统，负责所有用户交互
         if page is None and current_state:
             page = current_state.page
         # 分页
-        page_size = 4
+        page_size = 6
         # 分离 'z' 返回键和其他选项
         chanllenge_items = [(k, v) for k, v in options.items() if k != 'z']
         # 总页数 = 总项数/4 ，向上取整
@@ -318,6 +326,7 @@ class Menu:       # 菜单系统，负责所有用户交互
             return{
                 'a':('冒险模式', True, 0),
                 'b':('挑战模式', True, 0),
+                'c':('角色',True,0),
                 'h':('帮助', True, 0),
                 'q':('退出', True, 0),
             }
@@ -327,6 +336,9 @@ class Menu:       # 菜单系统，负责所有用户交互
                 return '__continue__'
             elif choice == 'b':
                 menu.navigate_to('chanllenge')
+                return '__navigate__'
+            elif choice == 'c':
+                menu.navigate_to('character')
                 return '__navigate__'
             elif choice == 'h':
                 say("欢迎来到武侠世界！\n"
@@ -339,7 +351,7 @@ class Menu:       # 菜单系统，负责所有用户交互
                 return '__exit__'
             return '__continue__'
         return MenuConfig(
-            title="=== FG ===\n请选择游戏模式:",
+            title=lambda ctx: f"=== FG ===\n角色:{self.character_id}",
             build_options=build_options,
             handle_choice=handle_choice,
             show_cost=False
@@ -373,20 +385,49 @@ class Menu:       # 菜单系统，负责所有用户交互
                 return '__exit__'
             return '__continue__'
         return MenuConfig(
-            title='【回合开始】你略加思索，决定：',
+            title=lambda cdx:f'【回合开始 | 角色:{self.character_id}】你略加思索，决定：',
             build_options = build_options,
             handle_choice = handle_choice,
             show_cost = False
         )
+    def menu_character(self) -> MenuConfig:       # 选择角色
+        def build_options(menu, ctx):
+        # 获取manifest中目标角色的技能
+        # 玩家键以 "player_" 开头，其余是敌人；也可硬写白名单
+            player_ids = [k for k in menu.game.skill.skill_manifest.keys()
+                        if k.startswith('player_')]
+            options = {}
+            for idx, pid in enumerate(player_ids):
+                options[chr(ord('a') + idx)] = (pid, True, 0)
+            options['z'] = ('返回', True, 0)
+            return options
+        def handle_choice(menu, choice, ctx):
+            if choice == 'z' or choice == '__back__':
+                return '__back__'
+            options = build_options(menu, ctx)
+            if choice in options:
+                selected_pid = options[choice][0]   # 玩家选的角色ID
+                menu.character_id = selected_pid    # 更新角色id全局变量
+                print(f"你选择了角色：{selected_pid}")
+                return '__back__'
+            return '__continue__'
+        return MenuConfig(
+            title="选择你要操控的角色：",
+            build_options=build_options,
+            handle_choice=handle_choice,
+            show_cost=False
+        )
+
     def menu_category(self) -> MenuConfig:   # 行动类别菜单，一级子菜单
         def build_options(menu,ctx):
             category = ctx.get('category','')
-            levels = menu._get_available_levels(category)
+            levels = menu._get_available_levels(category,menu.character_id)
             options = {}
             for i,level in enumerate(levels):
                 key = chr(ord('a')+i)
-                count = sum(1 for s in menu.game.skill._skill_cache.values() if s.category == category and s.level == level)
+                count = sum(1 for s in menu.game.skill.get_skill_manifest(menu.character_id) if s.category == category and s.level == level)
                 options[key] = (f"{level}级技能 ({count}种)", True, 0)
+           
             options['z'] = ('返回',True,0)
             return options
         def handle_choice(menu,choice,ctx):
@@ -397,7 +438,7 @@ class Menu:       # 菜单系统，负责所有用户交互
             if choice in options:
                 level_index = ord(choice) - ord('a')
                 category = ctx.get('category', '')
-                levels = menu._get_available_levels(category)
+                levels = menu._get_available_levels(category, menu.character_id)
                 if level_index < len(levels):
                     selected_level = levels[level_index]
                     menu.navigate_to('level', {
@@ -416,7 +457,8 @@ class Menu:       # 菜单系统，负责所有用户交互
         def build_options(menu, ctx):
             return menu._build_skill_menu(
                 ctx.get('category', ''), 
-                ctx.get('level', '')
+                ctx.get('level', ''),
+                menu.character_id
             )
         
         def handle_choice(menu, choice, ctx):

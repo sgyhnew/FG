@@ -10,9 +10,26 @@
     "刀法":["乱刀葬","血刃狂舞"],
     "棍法":["龙吟棍","横扫千军"],
 
-    "player":{
+    "player_default":{
         "ATTACK":["LV1_ATTACK","LV2_ATTACK"],
         "DEFEND":["LV1_DEFEND","LV2_DEFEND"]
     },
+    "player_拳师":{
+        "ATTACK":["拳法"],
+        "DEFEND":["LV1_DEFEND","LV2_DEFEND"]
+    },
+    "player_剑客":{
+        "ATTACK":["剑法"],
+        "DEFEND":["LV1_DEFEND","LV2_DEFEND"]
+    },
+    "player_刀客":{
+        "ATTACK":["刀法"],
+        "DEFEND":["LV1_DEFEND","LV2_DEFEND"]
+    },
+    "player_棍师":{
+        "ATTACK":["棍法"],
+        "DEFEND":["LV1_DEFEND","LV2_DEFEND"]
+    },
+
     "boss_one":["爪击","强化爪击","卸力"]
 }
