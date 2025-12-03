@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import annotations
 from tarfile import data_filter
-from tkinter import ROUND
 from turtle import Turtle
 from typing import TYPE_CHECKING, Callable
 if TYPE_CHECKING:
@@ -18,7 +17,7 @@ from FG.constants import AttributeEvent as AE
 from func import say
 from system.attribute import Attribute,MpConfig,DamageResult
 from system.logger import Gamelogger
-from system.skill import SkillData,DefenseSkill,SkillManager
+from system.skill import SkillData,DefenseSkill,SkillManager,AttackSkill
 @dataclass(frozen=True)  # 冻结类
 class CombatData:    # 战斗结果数据
     damage_to_player: int   # 玩家受到的伤害
@@ -52,7 +51,7 @@ class Combat:  # 战斗系统
                 
 
             # case 2：能量事件
-            self.logger.gamerun(f"因{GR.ROUND},玩家MP +{MpConfig.MP_RULES.get(ROUND)}, PC MP +{MpConfig.MP_RULES.get(ROUND)}")
+            self.logger.gamerun(f"因{GR.ROUND.value},玩家MP +{MpConfig.MP_RULES.get(GR.ROUND)}, PC MP +{MpConfig.MP_RULES.get(GR.ROUND)}")
             self.attribute.mp_do(True, GR.ROUND)
             self.attribute.mp_do(False, GR.ROUND)
         except:
@@ -72,6 +71,7 @@ class Combat:  # 战斗系统
         self.logger.gamerun(f"第{self.game.count}回合PC行动阶段")
         say(f"【{FP.ACTION_PC.value}】",SAY_SPEED)
         try:
+            self.logger.info(f"PC选择{context.pc_skill.category}:{context.pc_skill.name}")
             self._build_effect('对方',context.pc_skill.name)
         except:
             self.logger.error("PC行动阶段异常")
@@ -80,6 +80,7 @@ class Combat:  # 战斗系统
         say(f"【{FP.RESOLVE.value}】",SAY_SPEED)
         try:
             context.combat_data = self.judge(context.player_skill, context.pc_skill)
+            self.logger.info(f"战斗结果: {context.combat_data.desc}")
             print(f"{context.combat_data.desc}")
         except Exception as e:
             self.logger.error("战斗结算阶段异常")
@@ -99,33 +100,25 @@ class Combat:  # 战斗系统
         current_hp = self.attribute.hp2
         max_hp = getattr(self.attribute, 'hp2_top', 100)
         hp_percentage = current_hp / max_hp
+        pc_skills = self.skill.get_skill_manifest("boss_one")
+        unlocked =set()
 
-        # 血量高于50%，随机选择lv1攻击技能
+        # 血量瓶颈解锁对应技能
         if hp_percentage > 0.5:
-            return self._get_random_attack_skill_by_level("lv1")
-        if hp_percentage > 0.25:
-            return self._get_random_attack_skill_by_level("lv2")
-        else:
-            # 留余
-            return self._get_random_attack_skill_by_level("lv2")   # 当前默认用lv2
-    def _get_random_attack_skill_by_level(self, target_level: str) -> str:  # 在指定等级中随机选1个攻击技能
-        """基于基础接口构建：在指定等级中随机选1个攻击技能"""
-        # 获取所有技能名称
-        all_skill_names = list(self.skill._skill_cache.keys())
-        
-        # 过滤出指定等级的攻击技能
-        attack_skills = [
-            name for name in all_skill_names
-            if (self.skill.get_skill(name).category == "attack" and 
-                self.skill.get_skill(name).level == target_level)
-        ]
-        
-        if attack_skills:
-            return random.choice(attack_skills)
-        
-        # 保底机制
-        print(f"[警告] 等级 '{target_level}' 没有找到攻击技能，使用默认技能")
-        return "基础拳"
+            unlocked.add("lv1")
+        elif hp_percentage > 0.25:
+            unlocked.add("lv2")
+        pc_skills = [sk for sk in pc_skills if sk.level in unlocked]
+
+        # pc选择技能逻辑，70%概率选择攻击技能，30%概率选择防御技能
+        pool = [sk for sk in pc_skills 
+                if (random.random() < 0.7 and isinstance(sk, AttackSkill)) 
+                    or 
+                    (random.random() < 0.3 and isinstance(sk,DefenseSkill))
+                ]
+        if not pool:
+            pool = [sk for sk in pc_skills if isinstance(sk, AttackSkill)]
+        return random.choice(pool).name
     
     def _damage_apply(self,        # 伤害应用,无返回
             player_damage: int,   # 玩家伤害
@@ -163,8 +156,8 @@ class Combat:  # 战斗系统
             self.logger.error("防御减免阶段异常")
         # case 3: 计算最终伤害，并设定安全值最小1点
         try:
-            player_damage = max(1, player_skill_damage - pc_reducition)
-            pc_damage = max(1, pc_skill_damage - player_reduction)
+            player_damage = max(0, player_skill_damage - pc_reducition)
+            pc_damage = max(0, pc_skill_damage - player_reduction)
         except:
             self.logger.error("最终伤害计算阶段异常")
         # case 4: 最终伤害,现阶段唯有招式克制可叠加
@@ -220,12 +213,12 @@ class Combat:  # 战斗系统
         # # 调试日志
         # print("\n[优先级执行日志]", " → ".join(context.result_log))
         
-        return CombatData(damage_to_player=pc_damage, damage_to_pc=pc_damage, desc = desc)
+        return CombatData(damage_to_player=player_damage, damage_to_pc=pc_damage, desc = desc)
 
     def _build_effect(self, sub: str, skill: str):   # 技能效果
         print(sub,end="")
         try:
-            print(self.skill.get_skill(skill).effect)
+            print(f"使用{self.skill.get_skill(skill).name},{self.skill.get_skill(skill).effect}")
         except:
             print("技能效果构建失败")
         sleep(0.1 * SAY_SPEED)

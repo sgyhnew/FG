@@ -427,13 +427,13 @@ class Menu:       # 菜单系统，负责所有用户交互
             if choice in options:
                 skill_name, unlocked, cost = options[choice]
                 
-                if not unlocked:
-                    say(f"技能'{skill_name}'尚未解锁...")
-                    return '__continue__'
+                # if not unlocked:
+                #     say(f"技能'{skill_name}'尚未解锁...")
+                #     return '__continue__'
                 
-                if menu.attribute.mp_get(True) < cost:
-                    say(f"能量不足{cost}点...")
-                    return '__continue__'
+                # if menu.attribute.mp_get(True) < cost:
+                #     say(f"能量不足{cost}点...")
+                #     return '__continue__'
                 
                 # 选择成功，清空栈并返回技能名
                 menu.stack.clear()

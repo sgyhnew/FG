@@ -1,6 +1,6 @@
 from abc import ABC
 from functools import lru_cache
-from typing import Dict, Any, Callable, Tuple, Iterator
+from typing import Dict, Any, Callable, Tuple, Iterator,List
 from dataclasses import dataclass
 from FG.constants import PriorityLevel as PL
 from func import load_json
@@ -64,7 +64,8 @@ class DefenseSkill(SkillData):  # 防御技能
     
 class SkillManager:     # 技能管理器
     def __init__(self):
-        self.skill = load_json('data/skill.json')
+        self.skill:Dict[str,Any] = load_json('data/skill.json')
+        self.skill_manifest:Dict[str,List[str]] =load_json('data/skill_manifest.json')
         self._skill_cache: Dict[str, SkillData] = {}
         self._build_skill()
 
@@ -95,3 +96,68 @@ class SkillManager:     # 技能管理器
         if skill_name not in self._skill_cache:
             raise KeyError(f"技能 '{skill_name}' 未定义，请检查 skill.json")
         return self._skill_cache[skill_name]
+    
+    def _get_tokens(self, token: str) -> List[str]:  # 递归获取mainfest中所有技能名
+        # case1：已经是最低层技能名
+        if token in self._skill_cache:
+            return [token]
+       
+        # case2：未定义，清单中不存在
+        if token not in self.skill_manifest:
+            raise KeyError(f"技能清单 '{token}' 未定义，请检查 skill_manifest.json")
+       
+        # case3: 清单中存在，递归展开
+        out = []
+        manifest_list = self.skill_manifest[token]
+
+        # 校验清单，必须是列表
+        if not isinstance(manifest_list, list):
+            raise TypeError(f"技能清单 '{token}' 必须是列表，请检查 skill_manifest.json")
+        
+        for i in manifest_list:
+            if not isinstance(i,str):
+                raise TypeError(f"技能清单 '{token}' 中的元素必须是字符串，请检查 skill_manifest.json")
+            out.extend(self._get_tokens(i))
+        return out
+    
+    def get_skill_manifest(self, entity_id: str) -> List[SkillData]:
+        """
+        根据角色/实体ID获取其可用的技能数据结构，并完成 SkillData 对象的封装。
+        """
+
+        # 1. 检查角色/实体ID是否存在于清单中
+        if entity_id not in self.skill_manifest:
+            raise KeyError(f"角色技能清单ID '{entity_id}' 未找到。")
+        
+        # 2. 获取该ID在 skill_manifests中的原始数据
+        manifest_data = self.skill_manifest[entity_id]
+
+        # 3. 递归展开清单，获得扁平数据
+        tokens: List[str] = []
+        if isinstance(manifest_data,list):
+            tokens = manifest_data
+        elif isinstance(manifest_data,dict):
+            for grp, id_list in manifest_data.items():
+                if not isinstance(id_list,list):
+                    raise TypeError(f"技能清单 '{entity_id}.{grp}'必须是List[str]")
+                tokens.extend(id_list)
+        else:
+            raise TypeError(f"技能清单 '{entity_id}'必须是List[str]或Dict[str,List[str]]")
+
+        # 4. 递归展开所有token -> 技能名
+        skill_names: List[str] = []
+        for token in tokens:
+            skill_names.extend(self._get_tokens(token))
+
+        # 5. 去重
+        seen, unique = set(), []
+        for name in skill_names:
+            if name not in seen:
+                unique.append(name)
+                seen.add(name)
+
+        # 6.转skilldata
+        try:
+            return [self.get_skill(n) for n in unique]
+        except KeyError as e:
+            raise KeyError(f"清单 '{entity_id}' 中的 {e.args[0]}") from e

@@ -58,7 +58,7 @@ class Game:
                 say("对方全身紧绷，紧紧盯住你一举一动'阁下好身手，我们今日到此为止如何？'\n")
             self.attribute.attribute_desc()   # 展示血量
             # self.menu.debug_state() # debug
-            menu_result = self.menu.run()     # 实例化菜单栈
+            menu_result = self.menu.run()     # 实例化菜单栈，返回为str | None | '__exit__'
 
             # 菜单选项
             if menu_result is None:
@@ -79,31 +79,16 @@ class Game:
                         self.attribute.mp_do(True, -cost)
                         self.fight(skill_name)
                     else:
-                        say(f"能量不足{cost}点，无法施展{skill_name}！")
+                        say(f"能量不足{cost}点，无法施展{skill_name}")
                         
                 except KeyError:
                     say(f"技能'{skill_name}'数据异常，无法使用")
-            elif isinstance(menu_result, int):
-                # 防御等级选择
-                defense_level = menu_result
-                try:
-                    # 根据防御等级获取对应的防御技能
-                    defense_skill_name = "进阶防御" if defense_level >= 2 else "基础防御"
-                    skill_data = self.skill.get_skill(defense_skill_name)
-                    cost = skill_data.cost
-                    
-                    # 检查能量是否足够
-                    if self.attribute.mp_get(True) >= cost:
-                        self.attribute.mp_do(True, -cost)
-                        self.fight(skill_name)
-                    else:
-                        say(f"能量不足{cost}点，无法进行防御！")
-                        
-                except KeyError:
-                    say("防御技能数据异常")
+                    self.logger.error(f"技能'{skill_name}'数据异常，无法使用")
+
             else:
                 print("此招式你尚未习得，思虑再三决定重新出招")
+                self.logger.warning(f"未知的菜单返回类型{type(menu_result)}")
 
-if __name__ == "__main__":
-        game = Game()
-        game.main() 
+if __name__ == '__main__':
+    game = Game()
+    game.main()

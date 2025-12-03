@@ -1,69 +1,88 @@
 {
     "attack": {
         "lv1": {
-            "基础拳": {
+            "金刚拳": {
                 "cost": 0,"cooldown": 0,"priority_level": "P2","priority": 2,
                 "effect": "挥出一拳，拳风袭面门。",
                 "damage": 10,
                 "type": "拳法"
             },
-            "基础剑": {
+            "流云剑法": {
                 "cost": 0,"cooldown": 0,"priority_level": "P2","priority": 2,
                 "effect": "刺出一剑，刺向薄弱处。",
                 "damage": 10,
                 "type": "剑法"
             },
-            "基础刀": {
+            "乱刀葬": {
                 "cost": 0,"cooldown": 0,"priority_level": "P2","priority": 2,
                 "effect": "砍出一刀，劈向脑门。",
                 "damage": 10,
                 "type": "刀法"
             },
-            "基础棍": {
+            "龙吟棍": {
                 "cost": 0,"cooldown": 0,"priority_level": "P2","priority": 2,
                 "effect": "挥动长棍，扫向对手。",
                 "damage": 10,
                 "type": "棍法"
+            },
+            "爪击":{
+                "cost": 0,"cooldown": 0,"priority_level": "P2","priority": 2,
+                "effect": "挥动爪子，狠狠向前抓去",
+                "damage": 10,
+                "type": "其他"
             }
+            
         },
         "lv2": {
-            "进阶拳": {
+            "龙吟百烈": {
                 "cost": 5,"cooldown": 2,"priority_level": "P2","priority": 2,
                 "effect": "负手而立，倏然挥出一拳，气动如龙！",
                 "damage": 25,
                 "type": "拳法"
             },
-            "进阶剑": {
+            "空山寂": {
                 "cost": 5,"cooldown": 2,"priority_level": "P2","priority": 2,
                 "effect": "躬身、出剑，此世间绝无这么快的剑！",
                 "damage": 25,
                 "type": "剑法"
             },
-            "进阶刀": {
+            "血刃狂舞": {
                 "cost": 5,"cooldown": 2,"priority_level": "P2","priority": 2,
                 "effect": "高高跃起，蓄力下劈。此刀势无可披靡！",
                 "damage": 25,
                 "type": "刀法"
             },
-            "进阶棍": {
+            "横扫千军": {
                 "cost": 5,"cooldown": 2,"priority_level": "P2","priority": 2,
                 "effect": "旋转长棍，化作漫天棍影，铺天盖地而来！",
                 "damage": 25,
                 "type": "棍法"
+            },
+            "强化爪击":{
+                "cost": 5,"cooldown": 2,"priority_level": "P2","priority": 2,
+                "effect": "挥动爪子，狠狠向前抓去",
+                "damage": 25,
+                "type": "其他"
             }
         }
     },
     "defense": {
         "lv1": {
-            "基础防御": {
+            "吐纳": {
                 "cost": 0,"cooldown": 0,"priority_level": "P2","priority": 2,
                 "effect": "气沉丹田，运转自身内力，可减少少量伤害。",
+                "defense_round": 1,
+                "damage_reduction": 5
+            },
+            "卸力":{
+                "cost": 0,"cooldown": 0,"priority_level": "P2","priority": 2,
+                "effect": "受到的伤害减少了。",
                 "defense_round": 1,
                 "damage_reduction": 5
             }
         },
         "lv2": {
-            "进阶防御": {
+            "金钟罩": {
                 "cost": 5,"cooldown": 0,"priority_level": "P2","priority": 2,
                 "effect": "吐纳间蕴含天地之力，似乎没有事物可以伤害自身一毫了。",
                 "defense_round": 1,

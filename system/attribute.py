@@ -102,8 +102,8 @@ class Attribute:    # 内部类属性系统，负责战斗中状态展示
         pc_current_hp = self.hp_get(False)
 
         # case2: 计算新的血量
-        play_hp = max(0,play_current_hp - play_damage)    
-        pc_hp = max(0,pc_current_hp - pc_damage)
+        play_hp = max(0,play_current_hp - pc_damage)    
+        pc_hp = max(0,pc_current_hp - play_damage)
 
         # case3: 设置新的血量
         self.hp1 = self.hp_set(True, play_hp)
